@@ -2,6 +2,7 @@ import sys
 from PyQt6.QtWidgets import QMainWindow, QApplication, QTableWidget, QTableWidgetItem, QDialog, QVBoxLayout, QLineEdit, \
     QComboBox, QPushButton
 from PyQt6.QtGui import QAction
+from PyQt6.QtCore import Qt
 import sqlite3
 
 
@@ -113,9 +114,9 @@ class SearchDialog(QDialog):
         layout = QVBoxLayout()
 
         # student name
-        name = QLineEdit()
-        name.setPlaceholderText("Name")
-        layout.addWidget(name)
+        self.name = QLineEdit()
+        self.name.setPlaceholderText("Name")
+        layout.addWidget(self.name)
 
         # search button
         button = QPushButton("Search")
@@ -125,8 +126,19 @@ class SearchDialog(QDialog):
         self.setLayout(layout)
 
     def search(self):
-        print("in search function")
-        pass
+        name = self.name.text()
+
+        connection = sqlite3.connect("database.db")
+        cursor = connection.cursor()
+        result = cursor.execute("SELECT * FROM students WHERE NAME = ?", (name,))
+        result = list(result)
+        items = main_win.table.findItems(name, Qt.MatchFlag.MatchFixedString)
+        print(items)
+        for item in items:
+            print(item)
+            main_win.table.item(item.row(), 1).setSelected(True)
+        cursor.close()
+        connection.close()
 
 
 app = QApplication(sys.argv)
