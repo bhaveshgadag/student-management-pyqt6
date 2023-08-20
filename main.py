@@ -1,6 +1,7 @@
 import sys
+from tkinter import dialog
 from PyQt6.QtWidgets import QMainWindow, QApplication, QTableWidget, QTableWidgetItem, QDialog, QVBoxLayout, QLineEdit, \
-    QComboBox, QPushButton, QToolBar, QStatusBar
+    QComboBox, QPushButton, QToolBar, QStatusBar, QMessage
 from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtCore import Qt
 import sqlite3
@@ -48,6 +49,7 @@ class MainWindow(QMainWindow):
         self.statusBar().addWidget(edit_button)
         self.statusBar().addWidget(delete_button)
         edit_button.clicked.connect(self.edit_record)
+        delete_button.clicked.connect(self.delete_record)
 
     def load_data(self):
         connection = sqlite3.connect("database.db")
@@ -72,6 +74,10 @@ class MainWindow(QMainWindow):
 
     def edit_record(self):
         dialog = EditDialog()
+        dialog.exec()
+
+    def delete_record(self):
+        dialog = DeleteDialog()
         dialog.exec()
 
 class InsertDialog(QDialog):
@@ -165,14 +171,16 @@ class EditDialog(QDialog):
         self.setWindowTitle("Edit student record")
         self.setFixedWidth(300)
         self.setFixedHeight(300)
-        index = main_win.table.currentIndex()
-        student_name = main_win.table.item(index, 1).text()
+        row = main_win.table.currentRow()
+        student_name = main_win.table.item(row, 1).text()
+        course = main_win.table.item(row, 2).text()
+        mobile = main_win.table.item(row, 3).text()
         print(student_name)
 
         layout = QVBoxLayout()
 
         # Student name input
-        self.student = QLineEdit()
+        self.student = QLineEdit(student_name)
         self.student.setPlaceholderText("Name")
         layout.addWidget(self.student)
 
@@ -181,18 +189,43 @@ class EditDialog(QDialog):
         courses = ["Biology", "Astronomy", "Math", "Physics"]
         self.course_cb.addItems(courses)
         layout.addWidget(self.course_cb)
+        self.course_cb.setCurrentItem(course)
 
         # Mobile input
-        self.mobile = QLineEdit()
+        self.mobile = QLineEdit(mobile)
         self.mobile.setPlaceholderText("Mobile")
         layout.addWidget(self.mobile)
 
         # Submit button
-        button = QPushButton("Add")
-        button.clicked.connect(self.insert_record)
+        button = QPushButton("Update")
+        button.clicked.connect(self.update_record)
         layout.addWidget(button)
 
         self.setLayout(layout)
+
+    def update_record(self):
+        student = self.student.text()
+        course = self.course_cb.itemText(self.course_cb.currentIndex())
+        mobile = self.mobile.text()
+        id = main_win.table.currentItem(main_win.table.currentRow(),0)
+
+        connection = sqlite3.connect("database.db")
+        cursor = connection.cursor()
+        cursor.execute("UPDATE students SET name=?, course=?, mobile=? WHERE id=?",
+                       (student, course, mobile, id))
+        connection.commit()
+        cursor.close()
+        connection.close()
+        main_win.load_data()
+
+class DeleteDialog(QMessage):
+    def __init__(self):
+        super().__init__()
+
+        msg = QLabel("Are you sure you want to delete this record?")
+        layout = Q
+
+
 
 app = QApplication(sys.argv)
 main_win = MainWindow()
