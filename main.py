@@ -1,7 +1,6 @@
 import sys
-from tkinter import dialog
 from PyQt6.QtWidgets import QMainWindow, QApplication, QTableWidget, QTableWidgetItem, QDialog, QVBoxLayout, QLineEdit, \
-    QComboBox, QPushButton, QToolBar, QStatusBar
+    QComboBox, QPushButton, QToolBar, QStatusBar, QLabel, QGridLayout
 from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtCore import Qt
 import sqlite3
@@ -180,7 +179,6 @@ class SearchDialog(QDialog):
         print(result)
         print(result.fetchall())
         # result = list(result)
-        # print(result)
         items = main_win.table.findItems(name, Qt.MatchFlag.MatchFixedString)
         for item in items:
             main_win.table.item(item.row(), 1).setSelected(True)
@@ -244,12 +242,37 @@ class EditDialog(QDialog):
         main_win.table.setCurrentCell(index, 0)
 
 
-class DeleteDialog():
+class DeleteDialog(QDialog):
     def __init__(self):
         super().__init__()
+        self.setWindowTitle("Delete Student Record")
 
-        # msg = QLabel("Are you sure you want to delete this record?")
-        # layout = Q
+        layout = QGridLayout()
+        msg = QLabel("Are you sure you want to delete this record?")
+        layout.addWidget(msg, 0, 0, 1, 2)
+
+        yes = QPushButton('Yes')
+        no = QPushButton('no')
+        layout.addWidget(yes, 1, 0)
+        layout.addWidget(no, 1, 1)
+
+        yes.clicked.connect(self.delete_record)
+        no.clicked.connect(self.close)
+
+        self.setLayout(layout)
+
+    def delete_record(self):
+        index = main_win.table.currentRow()
+        s_id = main_win.table.item(index, 0).text()
+
+        connection = sqlite3.connect("database.db")
+        cursor = connection.cursor()
+        cursor.execute("DELETE FROM students where id=?", (s_id,))
+        connection.commit()
+        cursor.close()
+        connection.close()
+        main_win.load_data()
+        self.close()
 
 
 app = QApplication(sys.argv)
