@@ -1,6 +1,6 @@
 import sys
 from PyQt6.QtWidgets import QMainWindow, QApplication, QTableWidget, QTableWidgetItem, QDialog, QVBoxLayout, QLineEdit, \
-    QComboBox, QPushButton, QToolBar, QStatusBar, QLabel, QGridLayout
+    QComboBox, QPushButton, QToolBar, QStatusBar, QLabel, QGridLayout, QMessageBox
 from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtCore import Qt
 import sqlite3
@@ -26,8 +26,9 @@ class MainWindow(QMainWindow):
 
         # Help Menu
         help_menu = self.menuBar().addMenu("&Help")
-        help_action = QAction("About", self)
-        help_menu.addAction(help_action)
+        about_action = QAction("About", self)
+        help_menu.addAction(about_action)
+        about_action.triggered.connect(self.about)
 
         # Main table of student records
         self.table = QTableWidget()
@@ -96,6 +97,11 @@ class MainWindow(QMainWindow):
     # Initialize Delete Dialog
     def delete_record(self):
         dialog = DeleteDialog()
+        dialog.exec()
+
+    # Initialize About Dialog
+    def about(self):
+        dialog = AboutDialog()
         dialog.exec()
 
 
@@ -273,6 +279,24 @@ class DeleteDialog(QDialog):
         connection.close()
         main_win.load_data()
         self.close()
+
+
+class AboutDialog(QMessageBox):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("About")
+        content = '''
+        Student Management System
+        Created by Bhavesh
+        
+        This is a simple student management application 
+        developed using Python, PyQt6 for GUI and 
+        sqlite3 for storing records.
+        '''
+        self.setText(content)
+
+        # self.setLayout(layout)
 
 
 app = QApplication(sys.argv)
