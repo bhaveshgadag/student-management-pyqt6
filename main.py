@@ -4,14 +4,18 @@ from PyQt6.QtWidgets import QMainWindow, QApplication, QTableWidget, QTableWidge
 from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtCore import Qt
 import sqlite3
+import mysql.connector
 
 
 class Database():
-    def __init__(self, database='database.db'):
+    def __init__(self, host='localhost', user='root', password='root', database='school'):
+        self.host= host
+        self.user = user
+        self.password = password
         self.database = database
 
     def connect(self):
-        connection = sqlite3.connect(self.database)
+        connection = mysql.connector.connect(self.host, self.user, self.password, self.database)
         return connection
 
 
